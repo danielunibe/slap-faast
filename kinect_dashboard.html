@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinect Control Dashboard</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
+            --card-bg: rgba(30, 30, 40, 0.6);
+            --text-color: #e0e0e0;
+            --accent-color: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h2 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Video Section - Full Width on large screens */
+        .video-section {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .view-port {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .view-port img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        /* Sliders */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Buttons Grid */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-grid-wide {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-blue {
+            background: #3498db;
+        }
+
+        .btn-green {
+            background: #2ecc71;
+        }
+
+        .btn-red {
+            background: #e74c3c;
+        }
+
+        .btn-yellow {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .btn-purple {
+            background: #9b59b6;
+        }
+
+        .btn-grey {
+            background: #95a5a6;
+        }
+
+        .btn-blue:hover {
+            background: #2980b9;
+        }
+
+        .btn-green:hover {
+            background: #27ae60;
+        }
+
+        .btn-red:hover {
+            background: #c0392b;
+        }
+
+        /* Selects */
+        select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 5px;
+        }
+
+        /* Status Bar */
+        .status-display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: auto;
+            font-size: 0.8em;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .status-val {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* Toggles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <h1>🎮 Kinect Control Dashboard</h1>
+
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="card">
+                <h2>📹 Video RGB <span class="status-val" style="margin-left:auto" id="videoFps">0 FPS</span></h2>
+                <div class="view-port">
+                    <img id="videoStream" src="" alt="Video Stream">
+                </div>
+            </div>
+            <div class="card">
+                <h2>🔬 Sensor de Profundidad <span class="status-val" style="margin-left:auto" id="depthFps">0
+                        FPS</span></h2>
+                <div class="view-port">
+                    <img id="depthStream" src="" alt="Depth Stream">
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+            <h2>🎚️ Control de Motor</h2>
+            <div class="control-group">
+                <label>Ángulo de Inclinación</label>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px">
+                    <span>-30°</span>
+                    <span class="status-val" id="tiltValue">0°</span>
+                    <span>+30°</span>
+                </div>
+                <input type="range" id="tiltSlider" min="-30" max="30" value="0" step="1">
+            </div>
+            <div class="btn-grid">
+                <button class="btn-blue" onclick="setTilt(-20)">▼ Abajo</button>
+                <button class="btn-green" onclick="setTilt(0)">◆ Centro</button>
+                <button class="btn-blue" onclick="setTilt(20)">▲ Arriba</button>
+            </div>
+            <div class="status-display">
+                <div class="status-row">
+                    <span>Rango:</span> <span class="status-val">-30° a +30°</span>
+                </div>
+                <div class="status-row">
+                    <span>Estado:</span> <span class="status-val" id="motorStatus">Detenido</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💡 Control de LED</h2>
+            <div class="btn-grid-wide">
+                <button class="btn-grey" onclick="setLED(0)">OFF</button>
+                <button class="btn-green" onclick="setLED(1)">Verde</button>
+                <button class="btn-red" onclick="setLED(2)">Rojo</button>
+                <button class="btn-yellow" onclick="setLED(3)">Amarillo</button>
+                <button class="btn-green" onclick="setLED(4)">❇️ Parpadeo</button>
+                <button class="btn-purple" onclick="setLED(6)">🔴🟡 R/A</button>
+            </div>
+            <div class="status-display">
+                <div class="status-row">
+                    <span>LED Actual:</span> <span class="status-val" id="ledStatus">Verde</span>
+                </div>
+                <div class="status-row">
+                    <span>Modos:</span> <span class="status-val">6 disponibles</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Configuración de Video</h2>
+            <div class="control-group">
+                <label>Formato de Video</label>
+                <select id="videoFormat">
+                    <option value="0">RGB (Por defecto)</option>
+                    <option value="1">Bayer RAW</option>
+                    <option value="2">IR 8-bit</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Resolución</label>
+                <select id="videoResolution">
+                    <option value="1">VGA (640x480)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Video Activo</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="videoToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Configuración de Depth</h2>
+            <div class="control-group">
+                <label>Formato de Profundidad</label>
+                <select id="depthFormat">
+                    <option value="11">Depth Coloreado (Jet)</option>
+                    <option value="0">11-bit Raw</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Mapa de Colores</label>
+                <select id="colormap">
+                    <option value="2">Jet (Default)</option>
+                    <option value="0">Autumn</option>
+                    <option value="1">Bone</option>
+                    <option value="3">Winter</option>
+                    <option value="4">Rainbow</option>
+                    <option value="5">Ocean</option>
+                    <option value="9">HSV</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Video Activo</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="depthToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>ℹ️ Info Sistema</h2>
+            <div class="status-display" style="height:100%">
+                <div class="status-row">
+                    <span>Estado Conexión:</span> <span class="status-val" id="connectionStatus">Conectado</span>
+                </div>
+                <div class="status-row">
+                    <span>Driver:</span> <span class="status-val">libfreenect (Unified)</span>
+                </div>
+                <div class="status-row">
+                    <span>Latencia:</span> <span class="status-val">&lt; 30ms</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DASHBOARD LOGIC ---
+
+        // Connect streams on load
+        window.addEventListener('load', () => {
+            document.getElementById('videoStream').src = '/video_feed';
+            document.getElementById('depthStream').src = '/depth_feed';
+            startStatusLoop();
+        });
+
+        // TILT CONTROL
+        const tiltSlider = document.getElementById('tiltSlider');
+        const tiltValue = document.getElementById('tiltValue');
+        const motorStatus = document.getElementById('motorStatus');
+
+        tiltSlider.addEventListener('change', (e) => setTilt(e.target.value));
+        tiltSlider.addEventListener('input', (e) => tiltValue.textContent = e.target.value + '°');
+
+        async function setTilt(angle) {
+            tiltSlider.value = angle;
+            tiltValue.textContent = angle + '°';
+            motorStatus.textContent = 'Moviendo...';
+
+            try {
+                const res = await fetch(`/api/tilt/${angle}`);
+                const data = await res.json();
+                motorStatus.textContent = data.success ? 'Detenido' : 'Error';
+            } catch (e) {
+                console.error(e);
+                motorStatus.textContent = 'Error Conexión';
+            }
+        }
+
+        // LED CONTROL
+        async function setLED(mode) {
+            const names = ['OFF', 'Verde', 'Rojo', 'Amarillo', 'Parpadeo', '?', 'Rojo/Amarillo'];
+            document.getElementById('ledStatus').textContent = names[mode] || '?';
+
+            try {
+                await fetch(`/api/led/${mode}`);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // TOGGLES & SELECTS
+        document.getElementById('videoToggle').addEventListener('change', (e) => {
+            fetch(`/api/video/${e.target.checked ? 1 : 0}`);
+        });
+
+        document.getElementById('depthToggle').addEventListener('change', (e) => {
+            fetch(`/api/depth/${e.target.checked ? 1 : 0}`);
+        });
+
+        document.getElementById('colormap').addEventListener('change', (e) => {
+            fetch(`/api/colormap/${e.target.value}`);
+        });
+
+        // STATUS LOOP
+        function startStatusLoop() {
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+                    document.getElementById('connectionStatus').textContent = data.connected ? 'Conectado' : 'Desc.';
+                    // Update external tilt reads if needed, sticking to local set for responsiveness
+                } catch {
+                    document.getElementById('connectionStatus').textContent = 'Desc.';
+                }
+            }, 2000);
+
+            // Fake FPS counter based on stream load
+            let vFps = 0, dFps = 0;
+            document.getElementById('videoStream').onload = () => vFps++;
+            document.getElementById('depthStream').onload = () => dFps++;
+
+            setInterval(() => {
+                document.getElementById('videoFps').textContent = vFps + ' FPS';
+                document.getElementById('depthFps').textContent = dFps + ' FPS';
+                vFps = 0; dFps = 0;
+            }, 1000);
+        }
+
+    </script>
+</body>
+
+</html>

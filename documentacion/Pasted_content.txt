@@ -1,0 +1,43 @@
+Aquí tienes un glosario de todos los archivos y carpetas clave de tu proyecto SpeedDocumentAI, con una breve descripción de su propósito. Puedes copiar este texto y pasarlo a Manus para que genere los contenidos correspondientes.
+
+Ruta / Nombre	Tipo	Descripción
+docs/architecture/	Carpeta	Diagramas de alto nivel y documentación de la arquitectura del sistema.
+docs/design/	Carpeta	Especificaciones de diseño UI/UX, mockups, paletas de color y tokens de diseño.
+docs/setup/	Carpeta	Guías de instalación y configuración del entorno (PowerShell scripts, dependencias, VS).
+docs/user-guides/	Carpeta	Manuales de usuario final: cómo interactuar con la aplicación, workflows típicos.
+src/app/	Carpeta	Punto de entrada de la app Next.js (App Router): layouts, providers y rutas principales.
+src/components/	Carpeta	Componentes React reutilizables: HUD, ClusterStrip, TabBar, InspectorDrawer, Mini-DAG, etc.
+src/pages/	Carpeta	Páginas Next.js de frontend (SSR/SSG) si hiciera falta funcionalidades adicionales aparte de App Router.
+src/pages/api/	Carpeta	Endpoints API REST mock para desarrollo local.
+src/pages/api/projects.ts	Archivo	Devuelve la lista de proyectos con progreso, fases, ETA y quotas.
+src/pages/api/quotas.ts	Archivo	Devuelve el estado de las cuotas Gemini (usadas, restantes, reset).
+src/pages/api/nodes.ts	Archivo	Devuelve el listado de nodos Ray/Prefect en el cluster con sus métricas (CPU, VRAM, jobs).
+src/pages/api/tasks.ts	Archivo	Devuelve las tareas en cola/ejecución con su nodeId, tokens, latencia, estado.
+public/assets/	Carpeta	Imágenes, iconos y recursos estáticos que entrega el servidor.
+src/styles/globals.css	Archivo	CSS global con directivas Tailwind (@tailwind base, components, utilities) y reglas de tema oscuro.
+tailwind.config.js	Archivo	Configuración de Tailwind (colores, tipografías, breakpoints, plugins).
+postcss.config.js	Archivo	Configuración de PostCSS para cargar Tailwind CSS y Autoprefixer.
+tsconfig.json	Archivo	Configuración de TypeScript para Next.js App Router, niveles de strictness y paths alias.
+package.json	Archivo	Metadatos NPM: dependencias, scripts (dev, build, start, lint, format:css, prepare), versión y nombre del proyecto.
+.gitignore	Archivo	Patrón de archivos/carpetas a ignorar en Git (node_modules, .next, logs, entornos, etc.).
+README.md	Archivo	Descripción del proyecto, estructura de carpetas y primeros pasos para desarrolladores y usuarios.
+scripts/bootstrap.ps1	Script	Crea estructura de carpetas base (docs/, src/, scripts/, tests/, .vscode/, etc.) y añade README.md y .gitignore.
+scripts/setup.ps1	Script	Instala dependencias (npm install), configura Tailwind, CSS global, Husky, lint-staged y añade scripts útiles a package.json.
+scripts/fix-setup.ps1	Script	Corrige package.json y crea .vscode/settings.json con recomendaciones de formato y exclusión de archivos.
+scripts/verify-structure.ps1	Script	Revisa la estructura vs. un listado esperado, muestra faltantes/extras por consola y genera structure-report.md.
+tests/unit/	Carpeta	Pruebas unitarias de funciones y componentes individuales.
+tests/integration/	Carpeta	Pruebas de integración para flujos completos y endpoints API.
+tools/	Carpeta	Utilidades y helpers varios (scripts extras, generadores de datos, transformaciones).
+logs/	Carpeta	Archivos de logs, dumps de prueba y resultados de ejecución para debugging.
+docker/	Carpeta	Dockerfiles, docker-compose.yml y configuración de contenedores para desarrollo y producción.
+.github/workflows/	Carpeta	Definición de pipelines CI/CD (lint, test, build, deploy).
+
+
+⸻
+
+Cómo usar este glosario con Manus
+	1.	Copia la tabla entera (incluyendo encabezados) y pégala en Manus.
+	2.	Pídele que “genere los archivos y carpetas según esta descripción, con contenido inicial vacío o plantillas básicas” (por ejemplo, archivos .ts con un componente vacío).
+	3.	Descarga el ZIP resultante, descomprímelo en tu C:\speedDocumentAI y estarás listo para seguir con el desarrollo.
+
+Cuando tengas el paquete generado por Manus, dime y seguimos con la configuración del entorno o la integración de Ray/Prefect.

@@ -1,0 +1,1 @@
+Carpeta: src\core - parte del proyecto Slap!Faast

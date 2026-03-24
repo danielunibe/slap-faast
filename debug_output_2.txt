@@ -1,0 +1,26 @@
+2025-12-26 16:44:37.816 | INFO     | __main__:main:15 - \U0001f480 Iniciando Detector de Huesos...
+2025-12-26 16:44:37.822 | INFO     | src.sensors.kinect_video_final:initialize:39 - \u2705 DLL cargada
+2025-12-26 16:44:37.847 | INFO     | src.sensors.kinect_video_final:initialize:93 - \u2705 Encontrados 1 Kinect(s)
+2025-12-26 16:44:38.243 | SUCCESS  | src.sensors.kinect_video_final:initialize:146 - \U0001f3a5 VIDEO KINECT INICIADO!
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1766789078.540885    9932 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1766789078.552307   26836 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+2025-12-26 16:44:38.552 | INFO     | src.tracking.mediapipe_wrapper:__init__:53 - HandLandmarker inicializado
+2025-12-26 16:44:38.552 | INFO     | src.tracking.hybrid_tracker:__init__:38 - IA Hands: OK
+2025-12-26 16:44:38.554 | WARNING  | src.tracking.hybrid_tracker:__init__:44 - IA Pose Error: Modelo no encontrado: G:\Otros ordenadores\Mi PC\E\en ejecucion ahora\Slap!Faast\src\models\pose_landmarker.task
+2025-12-26 16:44:38.558 | WARNING  | src.tracking.hybrid_tracker:__init__:49 - IA FaceMesh Error: FaceLandmarkerOptions.__init__() got an unexpected keyword argument 'min_face_tracking_confidence'. Did you mean 'min_tracking_confidence'?
+2025-12-26 16:44:38.603 | INFO     | src.tracking.hybrid_tracker:__init__:65 - HybridTracker Full System Initialized
+2025-12-26 16:44:38.603 | SUCCESS  | __main__:main:28 - Sistema listo. Presiona 'q' para salir.
+W0000 00:00:1766789078.627503   28728 landmark_projection_calculator.cc:81] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+2025-12-26 16:46:57.997 | INFO     | src.sensors.kinect_video_final:shutdown:182 - Kinect cerrado
+2025-12-26 16:46:58.022 | INFO     | src.tracking.hybrid_tracker:release:160 - HybridTracker released
+2025-12-26 16:46:58.050 | INFO     | __main__:main:67 - Detector finalizado.
+DEBUG: Initializing KinectVideoDriver. DLL Path: G:\Otros ordenadores\Mi PC\E\en ejecucion ahora\Slap!Faast\freenect.dll
+DEBUG: DLL found. Loading CDLL...
+DEBUG: CDLL loaded.
+DEBUG: Calling freenect_init...
+DEBUG: Checking num devices...
+DEBUG: Num devices: 1
+DEBUG: Opening device...
+DEBUG: Starting video...
+Press Enter to close...

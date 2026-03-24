@@ -1,0 +1,1 @@
+Carpeta: assets - parte del proyecto Slap!Faast

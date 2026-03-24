@@ -1,0 +1,10 @@
+# Codex, implementa las siguientes tareas según los módulos indicados.
+
+src/core/kinect_manager.py → conectar y abstraer datos del Kinect (v1, v2, Azure)
+src/gestures/recognizer.py → crear clase para detectar gestos y comparar contra plantillas
+src/ui/main_ui.py → construir GUI con modo oscuro, visualización de esqueleto y botones de prueba
+src/utils/mapper.py → mapear gestos detectados a acciones (teclas, mouse, etc.)
+slap_faast_launcher.py → orquestar inicialización y ejecutar interfaz principal
+tests/ → generar pruebas automáticas para cada módulo cuando terminen
+
+# Prioriza compatibilidad con Windows 11, rendimiento en tiempo real y uso de pykinect o MediaPipe.

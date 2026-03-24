@@ -1,0 +1,7 @@
+{
+  "name": "Xbox 360 Metro Dashboard",
+  "description": "A faithful recreation of the 2011 Xbox 360 Metro Dashboard interface using React, Tailwind CSS, and Framer Motion, featuring Gemini-powered game assistance.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,9 @@
+pykinect
+pyk4a
+pykinect2
+pyautogui
+keyboard
+opencv-python
+mediapipe
+numpy
+pillow
