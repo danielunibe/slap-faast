@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+system.log
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Node / JS
+node_modules/
+dist/
+build/
+.next/
+out/
+.vercel/
+.npm
+*.tsbuildinfo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Large Files / Binaries (GitHub 100MB Limit)
+*.exe
+*.zip
+*.7z
+*.dll
+*.lib
+*.pdb
+*.obj
+*.iso
+_LEGACY_ARCHIVE/
+
+# Project Specific
+Ethyria/
+limpiar_post_reinicio.bat
+Carpeta oficial/
+documentacion/kinect_guides/*.pdf
