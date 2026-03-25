@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Info, Settings2, ChevronUp, ChevronDown, Minus, Play, Hand, Target, Camera, Monitor, Mic, Video, Globe } from 'lucide-react';
 import { TileData, TileSize } from '../types';
@@ -6,7 +6,8 @@ import { KinectService } from '../services/kinectService';
 import { 
   useBackground, 
   BackgroundMode, 
-  FLUID_PRESETS 
+  FLUID_PRESETS,
+  LIGHT_VARIANTS 
 } from '../context/BackgroundContext';
 
 interface TileProps {
@@ -16,7 +17,7 @@ interface TileProps {
 
 const Tile: React.FC<TileProps> = ({ data, onClick }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { bgMode, setBgMode, colorMode, setColorMode, currentPalette, fluidConfig, updateFluidConfig, glimmerConfig, updateGlimmerConfig, preferences, updatePreferences } = useBackground();
+  const { bgMode, setBgMode, colorMode, setColorMode, currentPalette, fluidConfig, updateFluidConfig, glimmerConfig, updateGlimmerConfig, preferences, updatePreferences, lightVariant, setLightVariant } = useBackground();
   const [motorAngle, setMotorAngle] = useState(0);
   const [ledMode, setLedMode] = useState('GRN');
   const [videoActive, setVideoActive] = useState(true);
@@ -27,6 +28,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
   const [kinectStatus, setKinectStatus] = useState<any>(null);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
+  const [actionFeedback, setActionFeedback] = useState<{ label: string; result: 'ok' | 'err' | '' }>({ label: '', result: '' });
 
   // Helper para traducir strings estáticos (ES/EN)
   const t = (text: string) => {
@@ -108,20 +110,32 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
 
   const p = currentPalette; // Alias corto para usar en el JSX
 
-  // Poll status occasionally to sync UI with hardware
-  useEffect(() => {
-    if (data.kinectControl) {
-      KinectService.getStatus().then(status => {
-        if (status) {
-          setKinectStatus(status);
-          setMotorAngle(status.tilt);
-          // Inverse map LED int to string if needed, or just keep syncing
-          if (status.video_enabled !== undefined) setVideoActive(status.video_enabled);
-          if (status.depth_enabled !== undefined) setDepthActive(status.depth_enabled);
-        }
-      });
+  const ledFromInt = (code: number) => {
+    const map: Record<number, string> = { 0: 'OFF', 1: 'GRN', 2: 'RED', 3: 'YEL', 4: 'BLINK' };
+    return map[code] || 'GRN';
+  };
+
+  const syncStatus = useCallback(async () => {
+    if (!data.kinectControl) return;
+    const status = await KinectService.getStatus();
+    if (status) {
+      setKinectStatus(status);
+      if (typeof status.tilt === 'number') setMotorAngle(status.tilt);
+      if (typeof status.led === 'number') setLedMode(ledFromInt(status.led));
+      if (status.video_enabled !== undefined) setVideoActive(status.video_enabled);
+      if (status.depth_enabled !== undefined) setDepthActive(status.depth_enabled);
     }
-  }, []);
+  }, [data.kinectControl]);
+
+  const withFeedback = async (label: string, action: () => Promise<boolean>) => {
+    const ok = await action();
+    setActionFeedback({ label, result: ok ? 'ok' : 'err' });
+    if (ok) await syncStatus();
+    return ok;
+  };
+
+  // Poll status once on mount and after actions
+  useEffect(() => { syncStatus(); }, [syncStatus]);
 
   useEffect(() => {
     let localStream: MediaStream | null = null;
@@ -153,16 +167,18 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
   }, [data.isWebcam, sensorType]);
 
   // Handler for Motor
-  const handleMotorChange = (val: number) => {
+  const handleMotorChange = async (val: number) => {
+    const prev = motorAngle;
     setMotorAngle(val);
-    // Debounce could be added, but simple set for now
-    KinectService.setTilt(val);
+    const ok = await withFeedback('MOTOR', () => KinectService.setTilt(val));
+    if (!ok) setMotorAngle(prev);
   };
 
   // Handler for LED
-  const handleLedChange = (mode: string) => {
+  const handleLedChange = async (mode: string) => {
     setLedMode(mode);
-    KinectService.setLed(mode);
+    const ok = await withFeedback('LED', () => KinectService.setLed(mode));
+    if (!ok) setLedMode(ledMode);
   };
 
   // Determine Grid Spans
@@ -197,6 +213,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
   `;
 
   const finalBg = data.isWebcam ? 'bg-black' : '';
+  const glassClass = data.isWebcam ? '' : 'glass-surface';
   const stopProp = (e: React.MouseEvent) => e.stopPropagation();
 
   const iconStyle: React.CSSProperties = {
@@ -214,6 +231,14 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
         <div style={{ position: 'absolute', bottom: -12, right: -12, opacity: 0.06, transform: 'rotate(-10deg) scale(3.5)', transformOrigin: 'bottom right', pointerEvents: 'none', color: p.tileText }}>{data.icon}</div>
       )}
     </>
+  );
+
+  const ActionFeedback = () => (
+    actionFeedback.label
+      ? <div className="mt-3 text-[9px] font-mono uppercase tracking-wider" style={{ color: actionFeedback.result === 'ok' ? p.tileSubtext : '#ff7b7b' }}>
+          {actionFeedback.label}: {actionFeedback.result === 'ok' ? 'OK' : 'ERROR'}
+        </div>
+      : null
   );
 
   // --- MOTOR COMPONENT (INTERNAL LAYOUT FOR MASKING) ---
@@ -263,6 +288,9 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
               className="absolute inset-0 w-full h-full opacity-0 cursor-ns-resize z-50 overflow-hidden"
               style={{ writingMode: 'vertical-rl', direction: 'rtl', WebkitAppearance: 'slider-vertical' } as any}
             />
+            <div style={{ position: 'absolute', bottom: 8, left: 10 }}>
+              <ActionFeedback />
+            </div>
           </div>
         );
 
@@ -324,6 +352,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
                 </button>
               ))}
             </div>
+            <ActionFeedback />
           </div>
         );
 
@@ -440,17 +469,17 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
       case 'video-settings':
         return (
           <div className="flex flex-col h-full p-4 relative z-10 w-full" onClick={stopProp}>
-            <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-4">
               <span className="font-display font-bold uppercase tracking-widest text-[10px]" style={{ color: p.tileSubtext }}>Video Config</span>
               <div className={iconNeumorphicStyle}><Settings2 size={16} /></div>
             </div>
             
             <div className="flex-1 flex flex-col justify-center">
               <button
-                onClick={() => {
+                onClick={async () => {
                   const newState = !videoActive;
-                  setVideoActive(newState);
-                  KinectService.setVideoEnabled(newState);
+                  const ok = await withFeedback('RGB SENSOR', () => KinectService.setVideoEnabled(newState));
+                  if (ok) setVideoActive(newState);
                 }}
                 className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 transition-all duration-300
                   ${videoActive 
@@ -469,6 +498,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
               <div className={`w-2 h-2 rounded-full ${videoActive ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`}></div>
               <span className="text-[10px] font-mono uppercase" style={{ color: p.tileSubtext }}>Res: 640x480</span>
             </div>
+            <ActionFeedback />
           </div>
         );
 
@@ -486,10 +516,10 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
             <div className="flex justify-between items-start mb-2">
               <span className="font-display font-bold uppercase tracking-widest text-[10px]" style={{ color: p.tileSubtext }}>Depth Config</span>
               <button
-                onClick={() => {
+                onClick={async () => {
                   const newState = !depthActive;
-                  setDepthActive(newState);
-                  KinectService.setDepthEnabled(newState);
+                  const ok = await withFeedback('DEPTH', () => KinectService.setDepthEnabled(newState));
+                  if (ok) setDepthActive(newState);
                 }}
                 className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all border
                   ${depthActive 
@@ -507,9 +537,11 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
                 {colormaps.map(cmap => (
                   <button
                     key={cmap.id}
-                    onClick={() => {
+                    onClick={async () => {
+                      const prev = depthColormap;
                       setDepthColormap(cmap.id);
-                      KinectService.setDepthColormap(cmap.id);
+                      const ok = await withFeedback('COLORMAP', () => KinectService.setDepthColormap(cmap.id));
+                      if (!ok) setDepthColormap(prev);
                     }}
                     className={`py-1 rounded-md text-[8px] font-bold uppercase transition-all duration-200 border
                       ${depthColormap === cmap.id
@@ -527,6 +559,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
               <div className={`w-2 h-2 rounded-full ${depthActive ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`}></div>
               <span className="text-[10px] font-mono uppercase" style={{ color: p.tileSubtext }}>IR Sensor 11-Bit</span>
             </div>
+            <ActionFeedback />
           </div>
         );
 
@@ -560,6 +593,27 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
                 </button>
               ))}
             </div>
+
+            {bgMode === 'spheres' && (
+              <div className="mb-3">
+                <span className="text-[9px] font-mono uppercase" style={{ color: p.tileSubtext }}>▸ Light Variants</span>
+                <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+                  {Object.entries(LIGHT_VARIANTS).map(([id, cfg]) => (
+                    <button
+                      key={id}
+                      onClick={() => setLightVariant(id as any)}
+                      className="px-2 py-2 rounded-lg text-left border transition-all duration-200"
+                      style={lightVariant === id
+                        ? { background: p.tileAccent, color: '#000', borderColor: p.tileAccent }
+                        : { background: 'rgba(0,0,0,0.35)', color: p.tileSubtext, borderColor: `${p.tileAccent}22` }}
+                    >
+                      <div className="text-[10px] font-bold uppercase">{cfg.label}</div>
+                      <div className="h-1 w-full mt-1 rounded-full" style={{ background: cfg.primary }}></div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Controles Fluid */}
             {bgMode === 'fluid' && (
@@ -901,7 +955,7 @@ const Tile: React.FC<TileProps> = ({ data, onClick }) => {
       whileHover={{ scale: 1.02, zIndex: 10 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => onClick(data)}
-      className={`${spanClass} ${baseStyles} ${finalBg} cursor-pointer select-none text-left`}
+      className={`${spanClass} ${baseStyles} ${finalBg} ${glassClass} cursor-pointer select-none text-left`}
       style={tileGlassStyle}
     >
       {renderContent()}

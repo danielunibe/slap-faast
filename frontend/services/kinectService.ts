@@ -14,9 +14,11 @@ export const KinectService = {
   // Hardware Controls
   setTilt: async (angle: number) => {
     try {
-      await fetch(`${API_BASE}/tilt/${angle}`);
+      const res = await fetch(`${API_BASE}/tilt/${angle}`);
+      return res.ok;
     } catch (e) {
       console.error("Kinect Tilt Error:", e);
+      return false;
     }
   },
 
@@ -27,33 +29,41 @@ export const KinectService = {
     };
     const val = modeMap[mode] ?? 1;
     try {
-      await fetch(`${API_BASE}/led/${val}`);
+      const res = await fetch(`${API_BASE}/led/${val}`);
+      return res.ok;
     } catch (e) {
       console.error("Kinect LED Error:", e);
+      return false;
     }
   },
 
   setVideoEnabled: async (enabled: boolean) => {
     try {
-      await fetch(`${API_BASE}/video/${enabled ? 1 : 0}`);
+      const res = await fetch(`${API_BASE}/video/${enabled ? 1 : 0}`);
+      return res.ok;
     } catch (e) {
       console.error("Kinect Video Toggle Error:", e);
+      return false;
     }
   },
 
   setDepthEnabled: async (enabled: boolean) => {
     try {
-      await fetch(`${API_BASE}/depth/${enabled ? 1 : 0}`);
+      const res = await fetch(`${API_BASE}/depth/${enabled ? 1 : 0}`);
+      return res.ok;
     } catch (e) {
       console.error("Kinect Depth Toggle Error:", e);
+      return false;
     }
   },
 
   setDepthColormap: async (cmap: number) => {
     try {
-      await fetch(`${API_BASE}/colormap/${cmap}`);
+      const res = await fetch(`${API_BASE}/colormap/${cmap}`);
+      return res.ok;
     } catch (e) {
       console.error("Kinect Colormap Error:", e);
+      return false;
     }
   },
 

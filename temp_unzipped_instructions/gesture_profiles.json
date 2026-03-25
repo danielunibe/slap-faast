@@ -1,0 +1,464 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2024-12-19",
+  "default_profile": "gaming",
+  "profiles": {
+    "gaming": {
+      "name": "Gaming Pro",
+      "description": "Perfil optimizado para juegos y entretenimiento",
+      "gestures": {
+        "arms_up": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "space",
+              "description": "Pausa/Play"
+            }
+          ]
+        },
+        "right_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+shift+right",
+              "description": "Siguiente pista"
+            }
+          ]
+        },
+        "left_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+shift+left",
+              "description": "Pista anterior"
+            }
+          ]
+        },
+        "t_pose": {
+          "enabled": true,
+          "confidence_threshold": 0.85,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "win+d",
+              "description": "Mostrar escritorio"
+            }
+          ]
+        },
+        "point_right": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "mouse_click",
+              "button": "left",
+              "description": "Clic izquierdo"
+            }
+          ]
+        },
+        "point_left": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "alt+tab",
+              "description": "Cambiar ventana"
+            }
+          ]
+        },
+        "wave_right": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+c",
+              "description": "Copiar"
+            }
+          ]
+        },
+        "wave_left": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+v",
+              "description": "Pegar"
+            }
+          ]
+        }
+      },
+      "settings": {
+        "detection_fps": 30,
+        "smoothing_factor": 0.7,
+        "gesture_timeout": 2.0,
+        "enable_voice_commands": true,
+        "enable_multimodal": true
+      }
+    },
+    "productivity": {
+      "name": "Productividad",
+      "description": "Perfil para trabajo y presentaciones",
+      "gestures": {
+        "arms_up": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "f5",
+              "description": "Iniciar presentación"
+            }
+          ]
+        },
+        "right_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "right",
+              "description": "Siguiente diapositiva"
+            }
+          ]
+        },
+        "left_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "left",
+              "description": "Diapositiva anterior"
+            }
+          ]
+        },
+        "t_pose": {
+          "enabled": true,
+          "confidence_threshold": 0.85,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "escape",
+              "description": "Salir presentación"
+            }
+          ]
+        },
+        "point_right": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "mouse_move",
+              "direction": "right",
+              "distance": 100,
+              "description": "Mover cursor derecha"
+            }
+          ]
+        },
+        "point_left": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "mouse_move",
+              "direction": "left",
+              "distance": 100,
+              "description": "Mover cursor izquierda"
+            }
+          ]
+        }
+      },
+      "settings": {
+        "detection_fps": 25,
+        "smoothing_factor": 0.8,
+        "gesture_timeout": 1.5,
+        "enable_voice_commands": true,
+        "enable_multimodal": false
+      }
+    },
+    "accessibility": {
+      "name": "Accesibilidad",
+      "description": "Perfil para usuarios con necesidades especiales",
+      "gestures": {
+        "arms_up": {
+          "enabled": true,
+          "confidence_threshold": 0.6,
+          "actions": [
+            {
+              "type": "system_command",
+              "command": "narrator",
+              "description": "Activar narrador"
+            }
+          ]
+        },
+        "right_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.5,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+plus",
+              "description": "Zoom in"
+            }
+          ]
+        },
+        "left_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.5,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+minus",
+              "description": "Zoom out"
+            }
+          ]
+        },
+        "t_pose": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "win+u",
+              "description": "Centro accesibilidad"
+            }
+          ]
+        }
+      },
+      "settings": {
+        "detection_fps": 20,
+        "smoothing_factor": 0.9,
+        "gesture_timeout": 3.0,
+        "enable_voice_commands": true,
+        "enable_multimodal": true,
+        "high_contrast": true,
+        "large_gestures_only": true
+      }
+    },
+    "media_control": {
+      "name": "Control Multimedia",
+      "description": "Perfil para control de medios y entretenimiento",
+      "gestures": {
+        "arms_up": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "space",
+              "description": "Play/Pausa"
+            }
+          ]
+        },
+        "right_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+right",
+              "description": "Adelantar 10s"
+            }
+          ]
+        },
+        "left_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+left",
+              "description": "Retroceder 10s"
+            }
+          ]
+        },
+        "point_right": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+up",
+              "description": "Subir volumen"
+            }
+          ]
+        },
+        "point_left": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+down",
+              "description": "Bajar volumen"
+            }
+          ]
+        },
+        "wave_right": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "n",
+              "description": "Siguiente episodio"
+            }
+          ]
+        },
+        "wave_left": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "p",
+              "description": "Episodio anterior"
+            }
+          ]
+        },
+        "t_pose": {
+          "enabled": true,
+          "confidence_threshold": 0.85,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "f",
+              "description": "Pantalla completa"
+            }
+          ]
+        }
+      },
+      "settings": {
+        "detection_fps": 30,
+        "smoothing_factor": 0.7,
+        "gesture_timeout": 1.8,
+        "enable_voice_commands": true,
+        "enable_multimodal": true
+      }
+    },
+    "development": {
+      "name": "Desarrollo",
+      "description": "Perfil para programadores y desarrolladores",
+      "gestures": {
+        "arms_up": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "f5",
+              "description": "Ejecutar/Debug"
+            }
+          ]
+        },
+        "right_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+s",
+              "description": "Guardar"
+            }
+          ]
+        },
+        "left_hand_up": {
+          "enabled": true,
+          "confidence_threshold": 0.75,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+z",
+              "description": "Deshacer"
+            }
+          ]
+        },
+        "t_pose": {
+          "enabled": true,
+          "confidence_threshold": 0.85,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+shift+c",
+              "description": "Abrir terminal"
+            }
+          ]
+        },
+        "point_right": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+d",
+              "description": "Duplicar línea"
+            }
+          ]
+        },
+        "point_left": {
+          "enabled": true,
+          "confidence_threshold": 0.7,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+shift+k",
+              "description": "Eliminar línea"
+            }
+          ]
+        },
+        "wave_right": {
+          "enabled": true,
+          "confidence_threshold": 0.8,
+          "actions": [
+            {
+              "type": "key_press",
+              "key": "ctrl+shift+f",
+              "description": "Formatear código"
+            }
+          ]
+        }
+      },
+      "settings": {
+        "detection_fps": 25,
+        "smoothing_factor": 0.8,
+        "gesture_timeout": 2.0,
+        "enable_voice_commands": true,
+        "enable_multimodal": true,
+        "code_context_aware": true
+      }
+    }
+  },
+  "global_settings": {
+    "auto_switch_profiles": false,
+    "profile_switch_gesture": "double_clap",
+    "enable_profile_notifications": true,
+    "backup_profiles": true,
+    "export_format": "json"
+  },
+  "custom_gestures": {
+    "user_defined": [],
+    "imported": [],
+    "templates": [
+      {
+        "name": "Saludo personalizado",
+        "description": "Gesto de saludo con la mano derecha",
+        "keypoints": [
+          {"joint": "right_wrist", "position": [0.8, 0.3], "confidence": 0.9},
+          {"joint": "right_elbow", "position": [0.6, 0.5], "confidence": 0.8}
+        ],
+        "duration": 1.5,
+        "actions": []
+      }
+    ]
+  }
+}
+

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 export type BackgroundMode = 'aurora' | 'pulse' | 'metro' | 'spheres' | 'fluid' | 'glimmer';
 export type ColorMode = 'dark' | 'light';
 export type Language = 'es' | 'en';
+export type LightVariantId = 'fiber' | 'arctic' | 'magma' | 'pulse';
 
 // ── Paleta de colores por tema (dark y light) ──
 export interface ThemePalette {
@@ -66,6 +67,14 @@ export const FLUID_PRESETS: Record<string, Partial<FluidConfig>> = {
 };
 
 export interface GlimmerConfig { speed: number; intensity: number; }
+export interface LightVariantConfig { label: string; primary: string; accent: string; background: string; speed: number; glow: number; }
+
+export const LIGHT_VARIANTS: Record<LightVariantId, LightVariantConfig> = {
+  fiber:  { label: 'Fiber Green', primary: '#50b46e', accent: '#c8ffe0', background: '#030a05', speed: 1.0, glow: 1.0 },
+  arctic: { label: 'Arctic Pulse', primary: '#4fd1ff', accent: '#c2f0ff', background: '#04111a', speed: 1.2, glow: 1.3 },
+  magma:  { label: 'Magma Pulse', primary: '#ff5e00', accent: '#ffd1a1', background: '#0f0500', speed: 1.4, glow: 1.6 },
+  pulse:  { label: 'Neon Violet', primary: '#b388ff', accent: '#e6ddff', background: '#07040f', speed: 1.1, glow: 1.2 },
+};
 
 export interface AppPreferences {
   language: Language;
@@ -98,6 +107,8 @@ interface AppContextType {
   updateGlimmerConfig: (updates: Partial<GlimmerConfig>) => void;
   preferences: AppPreferences;
   updatePreferences: (updates: Partial<AppPreferences>) => void;
+  lightVariant: LightVariantId;
+  setLightVariant: (id: LightVariantId) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -108,6 +119,7 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [fluidConfig, setFluidConfig] = useState<FluidConfig>(DEFAULT_FLUID_CONFIG);
   const [glimmerConfig, setGlimmerConfig] = useState<GlimmerConfig>(DEFAULT_GLIMMER_CONFIG);
   const [preferences, setPreferences] = useState<AppPreferences>(DEFAULT_PREFERENCES);
+  const [lightVariant, setLightVariant] = useState<LightVariantId>('fiber');
 
   const currentPalette = THEME_PALETTES[bgMode][colorMode];
 
@@ -117,6 +129,7 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       fluidConfig, updateFluidConfig: u => setFluidConfig(p => ({ ...p, ...u })),
       glimmerConfig, updateGlimmerConfig: u => setGlimmerConfig(p => ({ ...p, ...u })),
       preferences, updatePreferences: u => setPreferences(p => ({ ...p, ...u })),
+      lightVariant, setLightVariant,
     }}>
       {children}
     </AppContext.Provider>

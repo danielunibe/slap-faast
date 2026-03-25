@@ -1,0 +1,344 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2024-12-19",
+  "ai_components": {
+    "ollama": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 11434,
+      "timeout": 30,
+      "max_retries": 3,
+      "models": {
+        "general": {
+          "name": "llama3:8b",
+          "description": "Modelo general para comandos complejos",
+          "auto_download": true,
+          "parameters": {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "top_k": 40,
+            "repeat_penalty": 1.1,
+            "num_ctx": 2048
+          }
+        },
+        "fast": {
+          "name": "phi3:mini",
+          "description": "Modelo rápido para respuestas inmediatas",
+          "auto_download": true,
+          "parameters": {
+            "temperature": 0.3,
+            "top_p": 0.8,
+            "num_ctx": 1024
+          }
+        },
+        "code": {
+          "name": "codellama:7b",
+          "description": "Modelo especializado en código",
+          "auto_download": false,
+          "parameters": {
+            "temperature": 0.1,
+            "top_p": 0.95,
+            "num_ctx": 4096
+          }
+        },
+        "analysis": {
+          "name": "mistral:7b",
+          "description": "Modelo para análisis de texto",
+          "auto_download": false,
+          "parameters": {
+            "temperature": 0.5,
+            "top_p": 0.9,
+            "num_ctx": 2048
+          }
+        },
+        "spanish": {
+          "name": "llama3:8b",
+          "description": "Modelo optimizado para español",
+          "auto_download": true,
+          "system_prompt": "Eres JARVIS, el asistente de Tony Stark. Responde siempre en español de manera concisa y profesional.",
+          "parameters": {
+            "temperature": 0.6,
+            "top_p": 0.9,
+            "num_ctx": 2048
+          }
+        }
+      }
+    },
+    "whisper": {
+      "enabled": true,
+      "model": "base",
+      "language": "es",
+      "device": "cpu",
+      "compute_type": "int8",
+      "vad_filter": true,
+      "vad_parameters": {
+        "threshold": 0.5,
+        "min_speech_duration_ms": 250,
+        "max_speech_duration_s": 30,
+        "min_silence_duration_ms": 2000,
+        "speech_pad_ms": 400
+      },
+      "audio_config": {
+        "sample_rate": 16000,
+        "chunk_length": 30,
+        "hop_length": 1,
+        "batch_size": 16
+      },
+      "optimization": {
+        "beam_size": 5,
+        "best_of": 5,
+        "patience": 1.0,
+        "length_penalty": 1.0,
+        "suppress_tokens": [-1],
+        "initial_prompt": null,
+        "condition_on_previous_text": true,
+        "fp16": false,
+        "compression_ratio_threshold": 2.4,
+        "logprob_threshold": -1.0,
+        "no_speech_threshold": 0.6
+      }
+    },
+    "vision": {
+      "enabled": true,
+      "screenshot_interval": 2,
+      "analysis_models": {
+        "object_detection": {
+          "enabled": true,
+          "model": "yolov8n",
+          "confidence_threshold": 0.5,
+          "classes_filter": ["person", "laptop", "mouse", "keyboard", "cell phone", "book"]
+        },
+        "text_detection": {
+          "enabled": true,
+          "model": "easyocr",
+          "languages": ["es", "en"],
+          "confidence_threshold": 0.7
+        },
+        "scene_analysis": {
+          "enabled": false,
+          "model": "clip",
+          "batch_size": 1
+        }
+      },
+      "processing": {
+        "resize_images": true,
+        "max_width": 1280,
+        "max_height": 720,
+        "compress_quality": 85,
+        "cache_screenshots": true,
+        "cache_duration": 300
+      }
+    },
+    "intent_processor": {
+      "enabled": true,
+      "confidence_threshold": 0.6,
+      "multimodal_fusion": {
+        "voice_weight": 0.4,
+        "gesture_weight": 0.4,
+        "visual_weight": 0.2
+      },
+      "intent_categories": {
+        "open_application": {
+          "confidence_threshold": 0.7,
+          "confirmation_required": false,
+          "voice_patterns": [
+            "abrir {app}",
+            "ejecutar {app}",
+            "iniciar {app}",
+            "lanzar {app}"
+          ]
+        },
+        "organize_windows": {
+          "confidence_threshold": 0.8,
+          "confirmation_required": false,
+          "voice_patterns": [
+            "organizar ventanas",
+            "ordenar ventanas",
+            "acomodar pantalla"
+          ]
+        },
+        "development_setup": {
+          "confidence_threshold": 0.75,
+          "confirmation_required": true,
+          "voice_patterns": [
+            "preparar desarrollo",
+            "entorno de desarrollo",
+            "setup de programación"
+          ]
+        },
+        "media_control": {
+          "confidence_threshold": 0.6,
+          "confirmation_required": false,
+          "voice_patterns": [
+            "reproducir",
+            "pausar",
+            "siguiente",
+            "anterior",
+            "volumen"
+          ]
+        },
+        "system_control": {
+          "confidence_threshold": 0.8,
+          "confirmation_required": true,
+          "voice_patterns": [
+            "apagar sistema",
+            "reiniciar",
+            "suspender",
+            "cerrar sesión"
+          ]
+        }
+      }
+    }
+  },
+  "jarvis_personality": {
+    "name": "JARVIS",
+    "personality_traits": [
+      "profesional",
+      "conciso",
+      "servicial",
+      "inteligente",
+      "leal"
+    ],
+    "response_style": {
+      "formality": "formal",
+      "length": "concise",
+      "tone": "professional",
+      "language": "spanish"
+    },
+    "phrases": {
+      "greeting": [
+        "Buenos días, señor.",
+        "A su servicio.",
+        "¿En qué puedo ayudarle?"
+      ],
+      "acknowledgment": [
+        "Entendido.",
+        "Por supuesto, señor.",
+        "Inmediatamente."
+      ],
+      "completion": [
+        "Tarea completada.",
+        "Hecho, señor.",
+        "Operación exitosa."
+      ],
+      "error": [
+        "Ha ocurrido un problema.",
+        "No pude completar esa tarea.",
+        "Error en el sistema, señor."
+      ],
+      "confirmation": [
+        "¿Confirma la operación?",
+        "¿Procedo?",
+        "¿Desea continuar?"
+      ]
+    },
+    "context_awareness": {
+      "remember_preferences": true,
+      "adapt_to_usage": true,
+      "learn_patterns": true,
+      "personalization_level": "high"
+    }
+  },
+  "performance": {
+    "max_concurrent_requests": 3,
+    "request_timeout": 15,
+    "cache_enabled": true,
+    "cache_size": 100,
+    "cache_ttl": 300,
+    "background_processing": true,
+    "priority_queue": true,
+    "resource_limits": {
+      "max_memory_mb": 2048,
+      "max_cpu_percent": 50,
+      "max_gpu_memory_mb": 1024
+    }
+  },
+  "security": {
+    "enable_content_filtering": true,
+    "allowed_commands": [
+      "open_application",
+      "organize_windows",
+      "media_control",
+      "development_setup",
+      "text_input",
+      "mouse_control"
+    ],
+    "blocked_commands": [
+      "system_shutdown",
+      "delete_files",
+      "network_access",
+      "registry_modification"
+    ],
+    "require_confirmation": [
+      "system_control",
+      "file_operations",
+      "network_operations"
+    ],
+    "sandbox_mode": false,
+    "log_all_requests": true
+  },
+  "integration": {
+    "event_bus": {
+      "enabled": true,
+      "publish_events": true,
+      "subscribe_to_events": [
+        "gesture_detected",
+        "voice_command",
+        "system_status_change"
+      ]
+    },
+    "audio_feedback": {
+      "enabled": true,
+      "voice_responses": true,
+      "sound_effects": true,
+      "response_delay": 0.5
+    },
+    "ui_integration": {
+      "enabled": true,
+      "show_processing_status": true,
+      "display_confidence": true,
+      "show_intent_analysis": true
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "log_requests": true,
+    "log_responses": true,
+    "log_performance": true,
+    "log_errors": true,
+    "max_log_size_mb": 100,
+    "log_rotation": true,
+    "detailed_debugging": false
+  },
+  "experimental": {
+    "enable_learning": false,
+    "enable_prediction": false,
+    "enable_context_memory": true,
+    "enable_emotion_detection": false,
+    "enable_multi_user": false,
+    "enable_cloud_sync": false
+  },
+  "fallback_modes": {
+    "no_ollama": {
+      "use_rule_based": true,
+      "use_simple_nlp": true,
+      "disable_complex_intents": true
+    },
+    "no_whisper": {
+      "use_system_speech": true,
+      "disable_voice_commands": false,
+      "use_keyboard_input": true
+    },
+    "no_vision": {
+      "disable_visual_context": true,
+      "use_window_titles": true,
+      "use_active_application": true
+    },
+    "low_performance": {
+      "reduce_model_complexity": true,
+      "increase_cache_usage": true,
+      "reduce_analysis_frequency": true
+    }
+  }
+}
+

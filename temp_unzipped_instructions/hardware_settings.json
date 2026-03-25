@@ -1,0 +1,222 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2024-12-19",
+  "hardware_profiles": {
+    "kinect_v1": {
+      "name": "Microsoft Kinect v1",
+      "type": "kinect",
+      "model": "1414",
+      "settings": {
+        "rgb_resolution": "640x480",
+        "depth_resolution": "640x480",
+        "fps": 30,
+        "led_mode": "green",
+        "tilt_angle": 0,
+        "near_mode": false,
+        "skeleton_smoothing": 0.7,
+        "enable_accelerometer": true,
+        "auto_exposure": true,
+        "auto_white_balance": true
+      },
+      "calibration": {
+        "depth_offset": 0,
+        "rgb_offset": [0, 0],
+        "skeleton_offset": [0, 0, 0],
+        "joint_confidence_threshold": 0.5,
+        "tracking_state_threshold": 2
+      },
+      "advanced": {
+        "enable_seated_mode": false,
+        "choose_skeletons": "closest",
+        "smooth_parameters": {
+          "smoothing": 0.7,
+          "correction": 0.3,
+          "prediction": 0.4,
+          "jitter_radius": 0.05,
+          "max_deviation_radius": 0.04
+        }
+      }
+    },
+    "webcam_generic": {
+      "name": "Cámara Web Genérica",
+      "type": "webcam",
+      "settings": {
+        "resolution": "1280x720",
+        "fps": 30,
+        "auto_focus": true,
+        "auto_exposure": true,
+        "brightness": 0,
+        "contrast": 0,
+        "saturation": 0,
+        "hue": 0,
+        "gain": 0,
+        "exposure": -1
+      },
+      "mediapipe_config": {
+        "model_complexity": 1,
+        "min_detection_confidence": 0.5,
+        "min_tracking_confidence": 0.5,
+        "enable_segmentation": false,
+        "smooth_landmarks": true,
+        "static_image_mode": false
+      },
+      "processing": {
+        "mirror_image": true,
+        "crop_region": null,
+        "background_subtraction": false,
+        "noise_reduction": true,
+        "edge_enhancement": false
+      }
+    },
+    "kinect_v2": {
+      "name": "Microsoft Kinect v2",
+      "type": "kinect_v2",
+      "settings": {
+        "color_resolution": "1920x1080",
+        "depth_resolution": "512x424",
+        "infrared_resolution": "512x424",
+        "fps": 30,
+        "enable_body_tracking": true,
+        "enable_face_tracking": false,
+        "enable_hd_face": false,
+        "joint_orientation": true
+      },
+      "calibration": {
+        "color_to_depth_mapping": true,
+        "depth_to_color_mapping": false,
+        "coordinate_mapping": "camera_space"
+      }
+    }
+  },
+  "detection_settings": {
+    "auto_detect_hardware": true,
+    "detection_timeout": 10,
+    "retry_attempts": 3,
+    "preferred_order": ["kinect_v1", "kinect_v2", "webcam_generic"],
+    "fallback_enabled": true,
+    "multiple_sensors": false
+  },
+  "performance_settings": {
+    "max_cpu_usage": 70,
+    "max_memory_usage": 1024,
+    "thread_pool_size": 4,
+    "buffer_size": 10,
+    "frame_skip_threshold": 5,
+    "adaptive_fps": true,
+    "low_power_mode": false
+  },
+  "monitoring": {
+    "enable_fps_monitoring": true,
+    "enable_cpu_monitoring": true,
+    "enable_memory_monitoring": true,
+    "enable_temperature_monitoring": false,
+    "log_performance_metrics": true,
+    "metrics_interval": 5,
+    "alert_thresholds": {
+      "low_fps": 15,
+      "high_cpu": 80,
+      "high_memory": 1536,
+      "high_temperature": 70
+    }
+  },
+  "connectivity": {
+    "usb_timeout": 5,
+    "connection_retry_delay": 2,
+    "heartbeat_interval": 10,
+    "reconnect_attempts": 5,
+    "device_enumeration_interval": 30
+  },
+  "debugging": {
+    "enable_debug_mode": false,
+    "log_level": "INFO",
+    "save_debug_frames": false,
+    "debug_frame_interval": 30,
+    "enable_performance_profiling": false,
+    "verbose_logging": false
+  },
+  "compatibility": {
+    "windows_versions": ["10", "11"],
+    "driver_requirements": {
+      "kinect_v1": {
+        "sdk_version": "1.8",
+        "runtime_required": true,
+        "developer_toolkit": false
+      },
+      "kinect_v2": {
+        "sdk_version": "2.0",
+        "runtime_required": true,
+        "developer_toolkit": false
+      }
+    },
+    "fallback_modes": {
+      "no_hardware": "simulation_mode",
+      "low_performance": "reduced_fps",
+      "connection_issues": "retry_with_delay"
+    }
+  },
+  "user_preferences": {
+    "preferred_sensor": "auto",
+    "enable_sensor_switching": true,
+    "notification_on_disconnect": true,
+    "auto_reconnect": true,
+    "save_sensor_state": true
+  },
+  "calibration_profiles": {
+    "living_room": {
+      "name": "Sala de estar",
+      "distance_from_sensor": 2.5,
+      "ceiling_height": 2.4,
+      "lighting_conditions": "natural",
+      "background_complexity": "medium",
+      "user_height_range": [1.5, 1.9],
+      "tracking_area": {
+        "width": 4.0,
+        "height": 3.0,
+        "depth": 4.0
+      }
+    },
+    "office": {
+      "name": "Oficina",
+      "distance_from_sensor": 1.8,
+      "ceiling_height": 2.6,
+      "lighting_conditions": "artificial",
+      "background_complexity": "low",
+      "user_height_range": [1.6, 1.8],
+      "tracking_area": {
+        "width": 3.0,
+        "height": 2.5,
+        "depth": 3.0
+      }
+    },
+    "gaming_room": {
+      "name": "Sala de juegos",
+      "distance_from_sensor": 3.0,
+      "ceiling_height": 2.8,
+      "lighting_conditions": "dim",
+      "background_complexity": "high",
+      "user_height_range": [1.4, 2.0],
+      "tracking_area": {
+        "width": 5.0,
+        "height": 3.5,
+        "depth": 4.5
+      }
+    }
+  },
+  "testing_configuration": {
+    "enable_test_mode": false,
+    "simulate_hardware": false,
+    "test_data_path": "./test_data/",
+    "automated_tests": {
+      "connection_test": true,
+      "fps_test": true,
+      "tracking_accuracy_test": true,
+      "latency_test": true
+    },
+    "benchmark_settings": {
+      "duration": 60,
+      "iterations": 10,
+      "save_results": true
+    }
+  }
+}
+

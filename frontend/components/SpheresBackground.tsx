@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useBackground } from '../context/BackgroundContext';
+import { useBackground, LIGHT_VARIANTS } from '../context/BackgroundContext';
 import { AuroraBackground, PulseBackground, MetroBackground } from './XboxBackgrounds';
 import FluidBackground from './FluidBackground';
 import GlimmerBackground from './GlimmerBackground';
@@ -24,8 +24,19 @@ interface Strand {
 /* ─────────────── RENDERIZADO DE ONDAS LUMINOSAS CON PARTÍCULAS Y DESTELLOS ─────────────── */
 export const SpheresBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { bgMode } = useBackground();
+  const { bgMode, lightVariant } = useBackground();
+  const variant = LIGHT_VARIANTS[lightVariant] || LIGHT_VARIANTS.fiber;
   const isActive = bgMode === 'spheres';
+
+  const hexToRgb = (hex: string) => {
+    const parsed = hex.replace('#', '');
+    const bigint = parseInt(parsed, 16);
+    return { 
+      r: (bigint >> 16) & 255, 
+      g: (bigint >> 8) & 255, 
+      b: bigint & 255 
+    };
+  };
 
   useEffect(() => {
     if (!isActive) return;
@@ -38,6 +49,13 @@ export const SpheresBackground: React.FC = () => {
     let spline: any[] = [];
     let time = 0;
     let animationFrameId: number;
+    const primary = hexToRgb(variant.primary);
+    const accent = hexToRgb(variant.accent);
+    const primaryColor = (a: number) => `rgba(${primary.r},${primary.g},${primary.b},${a})`;
+    const accentColor = (a: number) => `rgba(${accent.r},${accent.g},${accent.b},${a})`;
+    const backgroundColor = variant.background;
+    const speedBoost = variant.speed;
+    const glowBoost = variant.glow;
 
     const strands: Strand[] = [
       { offset: -70, width: 0.5, alpha: 0.15, glow: 0, speed: 0.5, type: 'traffic', particles: [] },
@@ -102,20 +120,20 @@ export const SpheresBackground: React.FC = () => {
             strand.particles.push({
               pos: Math.random() * spline.length,
               length: Math.random() * 40 + 10,
-              speed: strand.speed * (Math.random() * 0.6 + 0.7),
+              speed: strand.speed * speedBoost * (Math.random() * 0.6 + 0.7),
               flare: 0
             });
           }
         } else {
           for (let i = 0; i < 2; i++) {
-            strand.particles.push({ pos: Math.random() * spline.length, length: 20, speed: strand.speed * 2, flare: 0 });
+            strand.particles.push({ pos: Math.random() * spline.length, length: 20, speed: strand.speed * speedBoost * 2, flare: 0 });
           }
         }
       });
     }
 
     function draw() {
-      ctx.fillStyle = '#030a05';
+      ctx.fillStyle = backgroundColor;
       ctx.fillRect(0, 0, width, height);
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
@@ -131,18 +149,18 @@ export const SpheresBackground: React.FC = () => {
             const px1 = node.x + node.normal.x * strand.offset, py1 = node.y + node.normal.y * strand.offset;
             const px2 = nextNode.x + nextNode.normal.x * strand.offset, py2 = nextNode.y + nextNode.normal.y * strand.offset;
 
-            const wave = (Math.sin(i * 0.05 - time * strand.speed * 0.05) + Math.sin(i * 0.12 + time * 0.02) + 2) / 4;
+            const wave = (Math.sin(i * 0.05 - time * strand.speed * speedBoost * 0.05) + Math.sin(i * 0.12 + time * 0.02) + 2) / 4;
             const currentWidth = strand.width * (0.3 + wave * 1.5);
             const currentAlpha = strand.alpha * (0.2 + wave * 0.8);
 
             ctx.beginPath();
             ctx.moveTo(px1, py1); ctx.lineTo(px2, py2);
             ctx.lineWidth = currentWidth * 3.5;
-            ctx.strokeStyle = `rgba(80, 180, 110, ${currentAlpha * 0.15})`;
+            ctx.strokeStyle = primaryColor(currentAlpha * 0.15);
             ctx.stroke();
 
             ctx.lineWidth = currentWidth;
-            ctx.strokeStyle = `rgba(200, 255, 220, ${currentAlpha})`;
+            ctx.strokeStyle = accentColor(currentAlpha);
             ctx.stroke();
           }
 
@@ -160,9 +178,9 @@ export const SpheresBackground: React.FC = () => {
               const py = node.y + node.normal.y * strand.offset;
               ctx.beginPath();
               ctx.arc(px, py, strand.width * 2 * p.flare, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(255, 255, 255, ${p.flare})`;
-              ctx.shadowColor = `rgba(150, 255, 180, ${p.flare})`;
-              ctx.shadowBlur = 30 * p.flare;
+              ctx.fillStyle = accentColor(p.flare);
+              ctx.shadowColor = accentColor(p.flare);
+              ctx.shadowBlur = 30 * p.flare * glowBoost;
               ctx.fill();
             }
           });
@@ -172,7 +190,7 @@ export const SpheresBackground: React.FC = () => {
             if (p.pos - p.length > spline.length) {
               p.pos = 0;
               p.length = Math.random() * 50 + 10;
-              p.speed = strand.speed * (Math.random() * 0.6 + 0.7);
+              p.speed = strand.speed * speedBoost * (Math.random() * 0.6 + 0.7);
               p.flare = 0;
             }
             if (Math.random() < 0.002) p.flare = 1.0;
@@ -194,16 +212,16 @@ export const SpheresBackground: React.FC = () => {
             }
 
             const flareBoost = p.flare * 25;
-            const coreColor = p.flare > 0.5 ? `rgba(255, 255, 255, ${strand.alpha})` : `rgba(200, 255, 220, ${strand.alpha})`;
+            const coreColor = accentColor(strand.alpha);
             ctx.shadowColor = 'transparent';
             ctx.lineWidth = strand.width * 6;
-            ctx.strokeStyle = `rgba(80, 180, 110, ${strand.alpha * 0.15})`;
+            ctx.strokeStyle = primaryColor(strand.alpha * 0.15);
             ctx.stroke();
 
             ctx.lineWidth = strand.width + (p.flare * 1.5);
             ctx.strokeStyle = coreColor;
-            ctx.shadowColor = `rgba(100, 255, 140, ${strand.alpha})`;
-            ctx.shadowBlur = strand.glow + flareBoost;
+            ctx.shadowColor = accentColor(strand.alpha);
+            ctx.shadowBlur = (strand.glow + flareBoost) * glowBoost;
             ctx.stroke();
           });
         }
@@ -224,7 +242,7 @@ export const SpheresBackground: React.FC = () => {
       window.removeEventListener('resize', init);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isActive]);
+  }, [isActive, lightVariant]);
 
   return (
     <div 

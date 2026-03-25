@@ -12,16 +12,22 @@ import cv2
 import threading
 import time
 import sys
+import os
+from typing import Optional
 
 # Add root to path just in case
 sys.path.append(str(Path(__file__).parent))
 
-try:
-    from src.tracking.mediapipe_wrapper import MediaPipeWrapper
-    AI_AVAILABLE = True
-except ImportError as e:
-    print(f"Warning: AI modules not found: {e}")
-    AI_AVAILABLE = False
+# Permitir desactivar AI para arranque rápido desde env
+SKIP_AI = os.environ.get("FAAST_SKIP_AI", "1") == "1"
+AI_AVAILABLE = False
+if not SKIP_AI:
+    try:
+        from src.tracking.mediapipe_wrapper import MediaPipeWrapper
+        AI_AVAILABLE = True
+    except ImportError as e:
+        print(f"Warning: AI modules not found: {e}")
+        AI_AVAILABLE = False
 
 app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin Resource Sharing for React Frontend
@@ -59,6 +65,10 @@ class KinectServer:
         self.running = False
         self.thread = None
         self.mock_mode = False  # Modo simulación si no hay hardware
+        self.initialization_timeout = 4.0  # tiempo máximo para calentar buffers
+        self.reconnect_attempts = 0
+        self.max_reconnects = 2
+        self.last_depth_ready: float = 0.0
         
         # AI Tracking
         self.mp_wrapper = None
@@ -76,10 +86,71 @@ class KinectServer:
         else:
             print("AI not available")
         
+    def _log(self, message: str):
+        """Timestamped logger for USB/kinect events."""
+        ts = time.strftime("%H:%M:%S")
+        print(f"[KINECT {ts}] {message}")
+
+    def _reset_device(self):
+        """Cerrar con seguridad buffers/handles antes de reintentar."""
+        try:
+            if self.lib and self.dev:
+                self.lib.freenect_stop_depth(self.dev)
+                self.lib.freenect_stop_video(self.dev)
+                self.lib.freenect_close_device(self.dev)
+        except Exception as e:
+            self._log(f"Reset device stop error: {e}")
+        try:
+            if self.lib and self.ctx:
+                self.lib.freenect_shutdown(self.ctx)
+        except Exception as e:
+            self._log(f"Reset shutdown error: {e}")
+        self.dev = c_void_p()
+        self.ctx = c_void_p()
+
+    def _prime_streams(self, timeout: Optional[float] = None) -> bool:
+        """Ejecuta process_events hasta que RGB y Depth entreguen datos válidos."""
+        if self.mock_mode:
+            return True
+        timeout = timeout or self.initialization_timeout
+        start = time.perf_counter()
+        rgb_ok = depth_ok = False
+
+        while time.perf_counter() - start < timeout:
+            ret = self.lib.freenect_process_events(self.ctx)
+            if ret < 0:
+                self._log(f"process_events returned {ret} during warmup, retrying...")
+                time.sleep(0.05)
+                continue
+
+            # Revisar buffers (evita pantallas negras/azules)
+            if not rgb_ok and self.video_buffer:
+                video_sum = int(np.frombuffer(self.video_buffer, dtype=np.uint8).sum())
+                rgb_ok = video_sum > 0
+                if rgb_ok:
+                    self._log(f"RGB buffer primed (sum={video_sum})")
+
+            if not depth_ok and self.depth_buffer:
+                depth_array = np.frombuffer(self.depth_buffer, dtype=np.uint16)
+                valid = depth_array[(depth_array > 0) & (depth_array < 2047)]
+                depth_ok = valid.size > 500
+                if depth_ok:
+                    self.last_depth_ready = time.time()
+                    self._log(f"Depth buffer primed (valid={valid.size})")
+
+            if rgb_ok and depth_ok:
+                return True
+            time.sleep(0.02)
+
+        self._log(f"Warmup timeout reached (rgb_ok={rgb_ok}, depth_ok={depth_ok})")
+        return rgb_ok or depth_ok
+
     def init(self):
         """Inicializar Kinect usando SOLO libfreenect"""
         try:
+            self.mock_mode = False  # limpiar bandera antes de intentar
             self.lib = ctypes.CDLL(str(DLL_PATH))
+            t_init = time.perf_counter()
             
             # --- Configurar funciones libfreenect ---
             self.lib.freenect_init.argtypes = [POINTER(c_void_p), c_void_p]
@@ -132,6 +203,7 @@ class KinectServer:
             self.lib.freenect_get_tilt_degs.restype = c_double
             
             # --- Inicialización ---
+            self._log("Inicializando libfreenect...")
             self.lib.freenect_init(byref(self.ctx), None)
             
             # IMPORTANTE: Seleccionar MOTOR (0x01) y CAMERA (0x02) = 0x03
@@ -140,15 +212,15 @@ class KinectServer:
             self.lib.freenect_select_subdevices(self.ctx, FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA)
             
             num = self.lib.freenect_num_devices(self.ctx)
-            print(f"Dispositivos encontrados: {num}")
+            self._log(f"Dispositivos encontrados: {num}")
             if num <= 0:
-                print("No Kinect found - ENTRANDO EN MODO SIMULACIÓN")
+                self._log("No Kinect found - ENTRANDO EN MODO SIMULACIÓN")
                 self.mock_mode = True
                 return True
             
             ret = self.lib.freenect_open_device(self.ctx, byref(self.dev), 0)
             if ret < 0:
-                print("Error opening device - ENTRANDO EN MODO SIMULACIÓN")
+                self._log(f"Error opening device ({ret}) - ENTRANDO EN MODO SIMULACIÓN")
                 self.mock_mode = True
                 return True
             
@@ -161,13 +233,16 @@ class KinectServer:
             
             self.lib.freenect_start_video(self.dev)
             self.lib.freenect_start_depth(self.dev)
+            self._log(f"Streams start issued in {time.perf_counter() - t_init:.2f}s, aguardando primer frame...")
+
+            self._prime_streams(self.initialization_timeout)
             
             # Set initial LED green
             self.set_led(1) 
             
             return True
         except Exception as e:
-            print(f"Error init: {e}")
+            self._log(f"Error init: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -223,7 +298,12 @@ class KinectServer:
 
             try:
                 # IMPORTANTE: process_events maneja toda la comunicación USB (video, depth, motor)
-                self.lib.freenect_process_events(self.ctx)
+                ret = self.lib.freenect_process_events(self.ctx)
+                if ret < 0:
+                    self._log(f"freenect_process_events error ({ret}) — intentando reconectar")
+                    self.handle_usb_fault()
+                    time.sleep(0.1)
+                    continue
                 
                 # Procesar video
                 if self.video_enabled:
@@ -295,22 +375,48 @@ class KinectServer:
                 # Procesar depth
                 if self.depth_enabled:
                     depth_data = np.frombuffer(self.depth_buffer.raw, dtype=np.uint16)
-                    current_sum = depth_data.sum()
-                    if current_sum > 0:
+                    if depth_data.size:
                         depth = depth_data.reshape((480, 640))
-                        # Normalizacion fija para evitar parpadeos o pantalla negra por ruido
-                        depth_norm = (depth.astype(np.float32) / 2048.0 * 255).astype(np.uint8)
-                        # Invertir para que cerca sea mas brillante (opcional, pero estandar)
-                        depth_norm = 255 - depth_norm
-                        self.latest_depth_frame = cv2.applyColorMap(depth_norm, self.current_colormap)
-                        if time.time() % 5 < 0.1: print("Depth Data OK")
+                        valid_mask = (depth > 0) & (depth < 2047)
+                        valid_pixels = int(valid_mask.sum())
+                        if valid_pixels > 1500:
+                            depth_clean = np.where(valid_mask, depth, np.median(depth[valid_mask]))
+                            # Normalización robusta para evitar azul sólido por valores fuera de rango
+                            depth_norm = cv2.normalize(depth_clean, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+                            depth_norm = 255 - depth_norm  # Cercano = brillante
+                            depth_norm = cv2.medianBlur(depth_norm, 3)
+                            self.latest_depth_frame = cv2.applyColorMap(depth_norm, self.current_colormap)
+                            self.last_depth_ready = time.time()
+                            if time.time() % 5 < 0.1: 
+                                self._log(f"Depth OK (valid={valid_pixels})")
+                        else:
+                            if time.time() % 5 < 0.1:
+                                self._log(f"Depth buffer vacío/ruidoso (valid={valid_pixels})")
                     else:
-                        if time.time() % 5 < 0.1: print("Depth EMPTY")
+                        if time.time() % 5 < 0.1: self._log("Depth EMPTY (no buffer)")
                 
             except Exception as e:
-                print(f"Error en loop: {e}")
+                self._log(f"Error en loop: {e}")
             
             time.sleep(0.005) # Loop más rápido para eventos USB fluidos
+    
+    def handle_usb_fault(self):
+        """Reintenta reconexión suave cuando libfreenect reporta error."""
+        if self.mock_mode:
+            return
+        if self.reconnect_attempts >= self.max_reconnects:
+            self._log("Reconexiones máximas alcanzadas, manteniendo loop en mock mode temporal")
+            self.mock_mode = True
+            return
+        self.reconnect_attempts += 1
+        self._log(f"Reconexion #{self.reconnect_attempts} iniciada")
+        self._reset_device()
+        time.sleep(0.2)
+        if self.init():
+            self._log("Reconexion exitosa, reanudando loop")
+            self.reconnect_attempts = 0
+        else:
+            self._log("Reconexion fallida, continuará reintentando en siguiente evento")
     
     def start(self):
         """Iniciar servidor Kinect"""
@@ -326,12 +432,7 @@ class KinectServer:
         self.running = False
         if self.thread:
             self.thread.join(timeout=2)
-        if self.lib and self.dev:
-            self.lib.freenect_stop_depth(self.dev)
-            self.lib.freenect_stop_video(self.dev)
-            self.lib.freenect_close_device(self.dev)
-        if self.lib and self.ctx:
-            self.lib.freenect_shutdown(self.ctx)
+        self._reset_device()
 
 # Instancia global
 kinect = KinectServer()
@@ -423,11 +524,11 @@ if __name__ == "__main__":
     print("=" * 60)
     
     if kinect.start():
-        print("✓ Kinect initialized (Video + Motor + LED)")
-        print("\n🌐 Server: http://localhost:5001")
+        print("Kinect initialized (Video + Motor + LED)")
+        print("\nServer: http://localhost:5001")
         try:
             app.run(host='0.0.0.0', port=5001, debug=False, threaded=True)
         except KeyboardInterrupt:
             kinect.stop()
     else:
-        print("✗ Error: Could not initialize Kinect")
+        print("Error: Could not initialize Kinect")
